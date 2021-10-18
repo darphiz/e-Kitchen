@@ -1,0 +1,44 @@
+
+p{
+    font-size: 16px;
+}
+.logo{
+    font-size: 32px;
+}
+.main{
+margin-bottom: 30px;
+}
+.icon{
+    height: 50px;
+}
+.stat{
+    
+    font-size: 24px;
+}
+.login-form{
+    height: 400px;
+}
+.table{
+    overflow: auto !important;
+}
+.footer{
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    padding: 10px;
+    height: 60px;
+}
+@media only screen and (min-width: 600px){
+    .statz{
+        margin-top: 0px;
+        margin-left: 10px;
+        
+    }
+}
+
+@media only screen and (max-width: 600px){
+    .statz{
+        margin-top: 10px;        
+    }
+}

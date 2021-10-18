@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+
+{% block title %}Enter Your Login Details{% endblock %}
+{% block content %}
+<div class="w3-container">
+    <form class="w3-white login-form  w3-content w3-cntainer w3-round-large" action="" method="POST">
+        {% csrf_token %}
+        <h2 class="w3-margin w3-center">Login</h2>
+        <div class="w3-container">
+            {% if form_error %}
+            <p class="w3-container w3-red w3-padding w3-btn w3-round-large">{{form_error}}</p>
+            {% endif %}
+        <p>
+        <input name="username" id="id_username" type="text" class="w3-input w3-round-xxlarge w3-padding-16 w3-grey" placeholder="Username">
+        </p>
+        <p>
+        <input name="password" id="id_password" type="password" class="w3-input w3-round-xxlarge w3-padding-16 w3-grey" placeholder="password">
+        </p>
+         <p>
+        <input  type="submit" class="w3-btn w3-round-xxlarge w3-padding-16 w3-blue" value="submit">
+        </p>                        
+        </div>      
+    </form>
+
+        <h2 id="sock"></h2>
+        <script>
+            var socket = new WebSocket('ws://localhost:8000/ws/some_url/');
+            socket.onmessage = function(event){
+                var data = JSON.parse(event.data);
+                console.log(data);
+                document.querySelector('#sock').innerHTML = data.message;
+            }
+        </script>
+
+</div>
+{% endblock %}

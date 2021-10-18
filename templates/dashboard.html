@@ -1,0 +1,334 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% block title %}
+{{request.user.username|title}}'s DashBoard
+{% endblock%}
+
+ {% block content %}
+ <div class="w3-container">
+    <div class="w3-row w3-margin-top ">
+        <div class="w3-col m2 left-col">
+            <div class="w3-container">
+            
+            <a href="{% url 'dashboard' 'manager' %}" class="{% if manager %}w3-grey{% endif %} w3-btn w3-block w3-container w3-padding-16  w3-round-xxlarge">Manage Staffs</a>
+            
+            <a href="{% url 'dashboard' 'counter' %}" class="{% if counter %}w3-grey{% endif %} w3-btn w3-block w3-container w3-padding-16  w3-round-xxlarge">Take Orders</a>
+            
+            <a href="{% url 'dashboard' 'kitchen' %}" class="{% if kitchen %}w3-grey{% endif %} w3-btn w3-block w3-container w3-padding-16  w3-round-xxlarge">Fulfil Orders</a>
+            
+            <a href="{% url 'dashboard' 'general' %}"class="{% if general %}w3-grey{% endif %} w3-btn w3-block w3-padding-16 w3-container  w3-round-xxlarge">See All Orders</a>
+            
+            <a href="{% url 'logout' %}" class="w3-btn w3-block w3-padding-16 w3-container w3-round-xxlarge">Sign Out</a>
+            
+        </div>
+        </div>
+        <!--Right Column-->
+        <div class="w3-col m10 w3-white w3-round-xlarge right-col">
+       <!--Name Container-->
+        <div class="w3-container">
+            <div class="w3-left">
+            <p> <b>Hello</b>, {{request.user.get_full_name|title}}</p>
+            <p>Today is <b><span id="date"></span></b>. </p>
+            </div>
+            <div class="w3-right">
+               <b> <p>{{request.user.get_full_name|title}} <img class="w3-circle icon" src="{% static 'images/avatar.png' %}" alt="Profile Image"></p></b>
+            </div>
+        </div>
+
+        <div class="w3-row w3-container">  
+  
+          
+          
+            {% if manager %}    
+            <!---------------------------------------------------------------[manager]---------->    
+            <!--Add A New Staff Form-->
+
+                <div class="w3-container w3-col m9 w3-light-grey w3-padding-16 w3-round-xlarge ">
+                    
+                    <form action="{% url 'add_staff' %}" method="POST">
+                        {% csrf_token %}
+                        <h2 class="w3-text-blue">Add A New Staff</h2>
+                        {% for field in user_form %}
+                        {% if field.errors %} 
+                        {% for error in field.errors %}
+                        <p class="w3-red w3-round-large w3-button">{{error}}</p>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                        {% for field in profile_form %}
+                        {% if field.errors %}
+                        {% for error in field.errors %}
+                        <p class="w3-red w3-round-large w3-button">{{error}}</p>
+                        {% endfor %}
+                        {% endif %}
+                        {% endfor %}
+                        <p>
+                        <input name="first_name" id="id_first_name" type="text" class="w3-input w3-round-xxlarge w3-padding-16 w3-grey" required  placeholder="First Name">
+                        </p>
+                        <p>
+                        <input name="last_name" id="id_last_name" type="text" class="w3-input w3-round-xxlarge w3-padding-16 w3-grey" required  placeholder="Last Name">
+                        </p>
+                        <p>
+                        <input name="username" id="id_username" type="text" class="w3-input w3-round-xxlarge w3-padding-16 w3-grey" required  placeholder="Username">
+                        </p>
+                        <p>
+                        <input name="password" id="id_password" type="password" class="w3-input w3-round-xxlarge w3-padding-16 w3-grey" required  placeholder="password">
+                        </p>
+                        <p>
+                        <input name="email" id="id_email" type="email" class="w3-input w3-round-xxlarge  w3-padding-16 w3-grey" required  placeholder="email">
+                        </p>
+                        <label for="user_type">Staff Type</label>
+                        <p>
+                        <select class="w3-input w3-round-xxlarge w3-padding-16 w3-grey" required  name="user_type" id="id_user_type">
+
+                            <option value="manager">Manager</option>
+
+                            <option value="kitchen" selected>Kitchen</option>
+
+                            <option value="counter">Counter</option>
+
+                        </select>
+                        </p>
+                        <p>
+                        <input  type="submit" class="w3-btn w3-round-xxlarge w3-padding-16 w3-blue" value="submit">
+                        
+                    </form>
+                </div>
+                {% endif %}
+
+
+
+{% if counter %}
+<!----------------------------------------------------------[COUNTER/TAKE ORDER]------------------------------------------------>
+<div class="w3-container w3-col m9 w3-light-grey w3-padding-16 w3-round-xlarge">
+        {{request.user.id|json_script:'user-id'}}
+
+        <form id="OrderForm">
+            <p>
+                <input name="details" id="id_details" type="text" class="w3-input w3-round-xxlarge w3-padding-16 w3-grey" required  placeholder="Order Details">
+            </p>
+            <input  id ="submit" type="submit" class="w3-btn w3-round-xxlarge w3-padding-16 w3-blue" value="submit">        
+        </form>
+
+        <script> 
+            document.querySelector('#submit').onclick = function(e){
+                e.preventDefault(); 
+                const user_id = JSON.parse(document.getElementById('user-id').textContent);
+                const get_order = document.querySelector('#id_details');
+                const order = get_order.value;
+                takeOrderSocket.send(
+                    JSON.stringify({
+                        'details': order,
+                        'action': 'take_order'
+                    })
+                );
+                document.getElementById('OrderForm').reset();
+                window.createNotification({
+
+                        closeOnClick: true,
+                        displayCloseButton: true,
+                        positionClass:'nfc-top-right',
+                        showDuration: 3500,
+                        theme:'success'
+                })
+                ({
+                    title:'Success',
+                    message:'Order Sent',
+                });
+            }
+            
+            const takeOrderSocket = new WebSocket(
+                'ws://'+
+                window.location.host +
+                '/ws/order/'
+            );
+       
+        </script>
+ </div>
+
+
+{% endif %}
+
+
+{% if kitchen %}
+<!----------------------------------------------[Kitchen]------------------------>
+ <div class="w3-container w3-col m9 w3-light-grey w3-padding-16 w3-round-xlarge ">
+     <div class= "w3-responsive ">
+    <table id="order_table"  class="w3-table w3-bordered">
+
+				<thead>
+				<tr>
+					<th>id</th>
+					<th>Order Code</th>
+					<th>Details</th>
+                    <th>Status</th>
+                    <th>Action</th>
+				</tr>
+				</thead>
+
+				<tbody>
+
+
+                {% for order in pending_order %}
+                <tr>
+					<td>{{order.id}}</td>
+                    <td>{{order.order_code}}</td>
+                    <td>{{order.details}}</td>
+                    <td>{{order.status}}</td>
+                    <td><a href="{% url 'fulfil_orders' 'fulfil' order.id %}" class="w3-green w3-btn w3-round-xlarge">Fulfil</a> </td>
+                    {% empty %}
+                    <p>No pending Order....</p>
+             
+				</tr>
+   {% endfor %}
+				</tbody>
+            </table>
+            </div>
+ </div>
+
+<script>
+    const fulfilSocket = new WebSocket(
+        'ws://'+
+        window.location.host +
+        '/ws/order/'
+    );
+    
+    fulfilSocket.onmessage = function(e){
+        const data = JSON.parse(e.data);
+        var get_table = document.getElementById('order_table').getElementsByTagName('tbody')[0];
+
+        const app = `<tr>
+                        <td>${data.id}</td>
+                        <td>${data.order_code}</td>
+                        <td>${data.details}</td>
+                        <td>${data.status}</td>
+                        <td><a href="/order/fulfil_orders/fulfil/${data.id}" class="w3-green w3-btn w3-round-xlarge">Fulfil</a> </td>  
+				    </tr>`
+        var newRow = get_table.insertRow(get_table.rows.length);
+        newRow.innerHTML = app;
+        
+        /* Update Stats*/
+        var get_stat = document.getElementById('pending-stat');
+        var stat = parseInt(get_stat.textContent);
+        var newStat = stat+1;
+        get_stat.innerText = newStat;
+        window.createNotification({
+
+            closeOnClick: true,
+            displayCloseButton: true,
+            positionClass:'nfc-top-right',
+            showDuration: 5000,
+            theme:'warning'
+            })
+            ({
+            title:'Info',
+            message:'New Order',
+        });
+                    
+    }
+ </script>
+{% endif %}
+
+{% if general %}
+
+<!-----------------------------------[Landing Page]------------------------->
+<div class="w3-container w3-col m9 w3-light-grey w3-padding-16 w3-round-xlarge ">
+    <div class="w3-responsive">
+    <table class=" w3-table w3-bordered">
+
+				<thead>
+				<tr>
+					<th>id</th>
+                    <th>Order Code</th>
+                    <th>Date</th>
+					<th>Details</th>
+                    <th>Status</th>
+                    <th>Taken By</th>
+                    <th>Fulfilled by</th>
+                 
+				</tr>
+				</thead>
+
+				<tbody>
+
+
+                {% for order in order %}
+                    <tr>
+					<td>{{order.id}}</td>
+                    <td>{{order.order_code}}</td>
+                    <td>{{order.date}}</td>
+                    <td>{{order.details}}</td>
+                    <td>{{order.status}}</td>
+                    <td>{{order.taken_by.username}}</td>
+                    <td>{{order.fulfilled_by.username}}</td>
+                    
+    
+                    {% empty %}
+                    <p>No Order Yet....</p>
+             
+				</tr>
+   {% endfor %}
+				</tbody>
+            </table>
+            </div>
+ </div>
+
+{% endif %}
+
+
+{% if error %}
+        <div class="w3-container w3-col m9  w3-padding-16 w3-round-xlarge ">
+            <div class="w3-red w3-round-xlarge w3-padding">
+            <b><h2>Access Denied!</h2></b>
+            <p>You are not authorized to view this page. Contact the administrator.</p> 
+            </div>
+        </div>
+
+{% endif %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="w3-container statz  w3-col m2 w3-margin-bottom w3-round-xlarge w3-padding-16 w3-padding-16 w3-blue">
+                    <h2>
+                        Stats
+                    </h2>
+                    <p>
+                        Staff{{total_staff|pluralize}} <p class="stat">{{total_staff}}</p>
+                    </p>
+                    <p>
+                        Pending Order{{pending_order|pluralize}} <p id ="pending-stat" class="stat">{{pending_order.count}}</p>
+                    </p>
+                    <p>
+                        Completed Order{{completed_order|pluralize}}<p class="stat">{{completed_order.count}}</p>
+                    </p>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+ </div>
+ <script>
+     var d = new Date()
+     document.getElementById('date').innerHTML = d.toDateString();
+ </script>
+ 	
+   {% endblock %}

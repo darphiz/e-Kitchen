@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="{% static 'css/w3.css'%}">
+    <link rel="stylesheet" href="{% static 'css/style.css'%}">
+    <link rel="stylesheet" href="{% static 'css/notifications.css'%}">
+	<script src="{% static 'js/notifications.js' %}"></script>
+</head>
+<body class="w3-light-grey">
+    
+<header>
+	<!--Desktop Header-->
+  	<div class="w3-bar w3-blue">
+		<button class="logo w3-bar-item w3-btn w3-left">e-Kitchen</button>
+	</div>
+</header>
+<main class="main">
+   {% block content %}
+
+   {% endblock %}
+</main>
+<footer class="footer w3-blue">
+	<div class="w3-center">
+		<p>Developed by Daystar Dev</p>
+	</div>
+</footer>
+</body>
+</html>
